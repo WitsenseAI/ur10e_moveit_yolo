@@ -33,10 +33,10 @@ __pycache__/
 #   - the custom-trained cup model IS committed (see negation below) because a
 #     junior cannot regenerate it without the training data.
 # =============================================================================
-*.pt
-*.onnx
-*.engine
-!ros2_ws/yolo26_cup.pt
+# *.pt
+# *.onnx
+# *.engine
+# !ros2_ws/yolo26_cup.pt
 
 # =============================================================================
 # Debug / generated artifacts
