@@ -46,9 +46,6 @@ it in a bin.
 .
 ├── README.md                  # you are here
 ├── requirements.txt           # YOLO/torch venv (see Setup)
-├── moveit_setup.md            # guide: building the MoveIt config from scratch
-├── object_detection.md        # guide: the YOLO 3D detector
-├── object_pick_place.md       # guide: the pick-and-place node
 ├── ur10e_moveit.usd           # Isaac scene reference
 └── ros2_ws/
     ├── source_all.sh          # sources base ROS + MoveIt + this workspace
