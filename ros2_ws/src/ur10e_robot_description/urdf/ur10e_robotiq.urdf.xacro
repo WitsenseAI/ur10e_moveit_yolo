@@ -1,0 +1,122 @@
+<?xml version="1.0"?>
+<!--
+  ur10e_robotiq.urdf.xacro
+  =========================
+  Full robot = UR10e arm  +  Robotiq 2F-140 gripper, wired for Isaac Sim.
+
+  This is the single "source of truth" description you load into the
+  MoveIt Setup Assistant (and later reuse from your bringup launch).
+
+  It pulls geometry/parameters from two installed packages:
+    - ur_description        (the arm: links, joints, meshes, kinematics yaml)
+    - robotiq_description    (the 2F-140 gripper macro + meshes)
+
+  Hardware is selectable via args:
+    - sim_isaac:=true          ros2_control talks to Isaac over
+                                 /isaac_joint_commands and /isaac_joint_states
+                                 (topic_based_ros2_control).  [default]
+    - use_fake_hardware:=true  mock_components (useful for the MSA "demo").
+
+  Build/test it standalone with:
+    xacro ur10e_robotiq.urdf.xacro name:=ur10e ur_type:=ur10e | check_urdf /dev/stdin
+-->
+<!--
+  NOTE: the robot's <robot name=...> is hardcoded to "ur10e" on purpose.
+  The MoveIt Setup Assistant loads a xacro with NO arguments, and the UR
+  pattern "name=$(arg name)" on the root tag fails when 'name' isn't passed
+  (the same way the stock ur_description/ur.urdf.xacro does). Hardcoding the
+  model name lets MSA load this file directly; the macros below still use the
+  $(arg ...) defaults.
+-->
+<robot xmlns:xacro="http://wiki.ros.org/xacro" name="ur10e">
+
+  <!-- ============================ Arguments ============================ -->
+  <xacro:arg name="name"      default="ur10e"/>
+  <xacro:arg name="ur_type"   default="ur10e"/>
+  <xacro:arg name="tf_prefix" default=""/>
+
+  <!-- UR parameter files (reused from the installed ur_description package) -->
+  <xacro:arg name="joint_limit_params" default="$(find ur_description)/config/$(arg ur_type)/joint_limits.yaml"/>
+  <xacro:arg name="kinematics_params"  default="$(find ur_description)/config/$(arg ur_type)/default_kinematics.yaml"/>
+  <xacro:arg name="physical_params"    default="$(find ur_description)/config/$(arg ur_type)/physical_parameters.yaml"/>
+  <xacro:arg name="visual_params"      default="$(find ur_description)/config/$(arg ur_type)/visual_parameters.yaml"/>
+
+  <!-- Hardware selection (Isaac topic bridge by default) -->
+  <xacro:arg name="sim_isaac"            default="true"/>
+  <xacro:arg name="use_fake_hardware"    default="false"/>
+  <xacro:arg name="isaac_joint_commands" default="/isaac_joint_commands"/>
+  <xacro:arg name="isaac_joint_states"   default="/isaac_joint_states"/>
+
+  <xacro:property name="tf_prefix" value="$(arg tf_prefix)"/>
+
+  <!-- ============================ Includes ============================ -->
+  <xacro:include filename="$(find ur_description)/urdf/ur_macro.xacro"/>
+  <xacro:include filename="$(find robotiq_description)/urdf/robotiq_2f_140_macro.urdf.xacro"/>
+
+  <!-- ============================ World ============================ -->
+  <link name="world"/>
+
+  <!-- ============================ UR10e arm ============================ -->
+  <xacro:ur_robot
+      name="$(arg name)"
+      tf_prefix="$(arg tf_prefix)"
+      parent="world"
+      joint_limits_parameters_file="$(arg joint_limit_params)"
+      kinematics_parameters_file="$(arg kinematics_params)"
+      physical_parameters_file="$(arg physical_params)"
+      visual_parameters_file="$(arg visual_params)">
+    <origin xyz="0 0 0" rpy="0 0 0"/>           <!-- where the robot base sits in the world -->
+  </xacro:ur_robot>
+
+  <!-- ===================== Robotiq 2F-140 gripper ===================== -->
+  <!-- Mounted directly on the arm flange frame "tool0" (matches the NVIDIA Isaac UR+Robotiq reference). -->
+  <xacro:robotiq_gripper
+      name="RobotiqGripper"
+      prefix="${tf_prefix}"
+      parent="${tf_prefix}tool0"
+      sim_isaac="$(arg sim_isaac)"
+      use_fake_hardware="$(arg use_fake_hardware)"
+      isaac_joint_commands="$(arg isaac_joint_commands)"
+      isaac_joint_states="$(arg isaac_joint_states)"
+      include_ros2_control="false">
+    <origin xyz="0 0 0" rpy="0 0 0"/>
+  </xacro:robotiq_gripper>
+
+  <!-- ===================== Single Isaac ros2_control system (arm + gripper) ===================== -->
+  <!-- One system for ALL driven joints (6 arm + finger_joint). This makes the
+       topic_based command message well-formed: 7 names <-> 7 positions, which Isaac
+       can apply. (Two separate systems produced a gripper message with 6 names but
+       only 1 position, which Isaac dropped -> gripper never moved.)
+       The 5 finger mimic joints are NOT commanded here; the URDF <mimic> tags drive
+       them (Isaac mimic on import, robot_state_publisher for TF). -->
+  <ros2_control name="IsaacUR10e" type="system">
+    <hardware>
+      <xacro:if value="$(arg sim_isaac)">
+        <plugin>topic_based_ros2_control/TopicBasedSystem</plugin>
+        <param name="joint_commands_topic">$(arg isaac_joint_commands)</param>
+        <param name="joint_states_topic">$(arg isaac_joint_states)</param>
+        <param name="sum_wrapped_joint_states">true</param>
+      </xacro:if>
+      <xacro:if value="$(arg use_fake_hardware)">
+        <plugin>mock_components/GenericSystem</plugin>
+      </xacro:if>
+    </hardware>
+
+    <xacro:macro name="arm_joint" params="jname">
+      <joint name="${jname}">
+        <command_interface name="position"/>
+        <state_interface name="position"/>
+        <state_interface name="velocity"/>
+      </joint>
+    </xacro:macro>
+
+    <xacro:arm_joint jname="${tf_prefix}shoulder_pan_joint"/>
+    <xacro:arm_joint jname="${tf_prefix}shoulder_lift_joint"/>
+    <xacro:arm_joint jname="${tf_prefix}elbow_joint"/>
+    <xacro:arm_joint jname="${tf_prefix}wrist_1_joint"/>
+    <xacro:arm_joint jname="${tf_prefix}wrist_2_joint"/>
+    <xacro:arm_joint jname="${tf_prefix}wrist_3_joint"/>
+    <xacro:arm_joint jname="${tf_prefix}finger_joint"/>
+  </ros2_control>
+
+</robot>

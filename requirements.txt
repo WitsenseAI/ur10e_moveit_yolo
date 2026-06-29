@@ -1,0 +1,19 @@
+# YOLO / perception virtual environment for object_detection_yolo
+#
+# Create it once (Python 3.12 to match the system ROS Jazzy interpreter):
+#
+#   python3 -m venv --system-site-packages .yolo_moveit
+#   source .yolo_moveit/bin/activate
+#   pip install -r requirements.txt
+#
+# `--system-site-packages` lets the venv see system rclpy/cv_bridge while still
+# giving us a private ultralytics/torch. NumPy is pinned to the 1.x ABI because
+# cv_bridge / system extensions are built against NumPy 1.x — do not bump to 2.x.
+
+numpy==1.26.4
+ultralytics==8.4.80
+torch==2.12.1
+torchvision==0.27.1
+opencv-python==4.11.0.86
+pillow==12.2.0
+PyYAML==6.0.3

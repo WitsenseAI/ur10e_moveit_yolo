@@ -1,0 +1,39 @@
+# MoveIt uses this configuration for controller management.
+#
+# IMPORTANT: every controller name + action_ns here must match a real ros2_control
+# controller from ros2_controllers.yaml (and the ones spawned in the bringup).
+#   - arm_controller     -> joint_trajectory_controller/JointTrajectoryController
+#   - gripper_controller -> joint_trajectory_controller/JointTrajectoryController
+# A JointTrajectoryController exposes a "follow_joint_trajectory" action, so both
+# use type FollowJointTrajectory here.
+
+moveit_controller_manager: moveit_simple_controller_manager/MoveItSimpleControllerManager
+
+trajectory_execution:
+  allowed_execution_duration_scaling: 1.2
+  allowed_goal_duration_margin: 0.5
+  allowed_start_tolerance: 0.05   # a bit loose -> avoids "start state deviates" in sim
+
+moveit_simple_controller_manager:
+  controller_names:
+    - arm_controller
+    - gripper_controller
+
+  arm_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - shoulder_pan_joint
+      - shoulder_lift_joint
+      - elbow_joint
+      - wrist_1_joint
+      - wrist_2_joint
+      - wrist_3_joint
+
+  gripper_controller:
+    type: FollowJointTrajectory
+    action_ns: follow_joint_trajectory
+    default: true
+    joints:
+      - finger_joint
