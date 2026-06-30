@@ -8,8 +8,11 @@ from geometry_msgs.msg import Pose
 
 # ---- EDIT to match your Isaac table (meters, expressed in the robot "world" frame) ----
 FRAME_ID     = "world"
-TABLE_SIZE   = (1.0, 1.0, 0.01)     # x=length, y=width, z=thickness
-TABLE_CENTER = (0.55, 0.00, -0.02)    # center of the box (so top surface = z=0 here)
+TABLE_SIZE   = (2.0, 2.0, 0.01)     # x=length, y=width, z=thickness
+# Robot base is at the world origin, so centering the box on (0,0) puts the robot
+# in the MIDDLE of the table. z = -thickness/2 keeps the top surface flush at z=0
+# (where the base sits and objects rest).
+TABLE_CENTER = (0.0, 0.0, -TABLE_SIZE[2] / 2.0)
 
 TOUCH_LINKS  = ["base_link", "base_link_inertia", "base"]
 ATTACH_LINK  = "base_link"            # table is "attached" to the fixed base

@@ -18,8 +18,8 @@ setup(
     zip_safe=True,
     maintainer='zarus101',
     maintainer_email='raz.thapaliya600@gmail.com',
-    description='TODO: Package description',
-    license='TODO: License declaration',
+    description='YOLO 3D detection and MoveIt pick-and-place for the UR10e in Isaac Sim',
+    license='Apache-2.0',
     extras_require={
         'test': [
             'pytest',
@@ -28,7 +28,8 @@ setup(
     entry_points={
         'console_scripts': [
             'yolo_3d_detector = object_detection_yolo.yolo_3d_detector:main',
-            'pick_place = object_detection_yolo.pick_place:main'
+            'pick_place = object_detection_yolo.pick_place:main',
+            'move_to_pose = object_detection_yolo.move_to_pose:main'
         ],
     },
 )

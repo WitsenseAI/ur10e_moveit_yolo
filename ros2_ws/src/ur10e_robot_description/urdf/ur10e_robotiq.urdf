@@ -461,6 +461,11 @@
     </collision>
   </link>
   <link name="left_inner_finger_pad">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="4.1e-6" ixy="0" ixz="0" iyy="8.0e-7" iyz="0" izz="4.8e-6"/>
+    </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>
@@ -569,6 +574,11 @@
     </collision>
   </link>
   <link name="right_inner_finger_pad">
+    <inertial>
+      <origin rpy="0 0 0" xyz="0 0 0"/>
+      <mass value="0.01"/>
+      <inertia ixx="4.1e-6" ixy="0" ixz="0" iyy="8.0e-7" iyz="0" izz="4.8e-6"/>
+    </inertial>
     <visual>
       <origin rpy="0 0 0" xyz="0 0 0"/>
       <geometry>

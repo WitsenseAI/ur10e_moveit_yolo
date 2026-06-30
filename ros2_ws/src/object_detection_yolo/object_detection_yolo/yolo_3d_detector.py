@@ -30,7 +30,7 @@ class Yolo3DDetector(Node):
         self.declare_parameter("model", "yolo26_cup.pt")
         self.declare_parameter("classes", [-1])
         # self.declare_parameter("model", "yolov8n.pt")
-        self.declare_parameter("conf", 0.5)
+        self.declare_parameter("conf", 0.15)
         # self.declare_parameter("classes", [39, 41, 32])  # bottle, cup, sports ball
 
         # --- DEBUG TOGGLES (set false once everything works) ---

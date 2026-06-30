@@ -24,9 +24,10 @@ from moveit_msgs.msg import (MotionPlanRequest, Constraints, PositionConstraint,
 
 # ---------------- TUNE THESE (see object_pick_place.md Step 1) ----------------
 GROUP        = "ur_manipulator"
-EE_LINK      = "tool0"
+EE_LINK      = "grasp_tcp"     # group tip is now the grasp point (see ur10e.srdf)
 PLAN_FRAME   = "world"
-TCP_OFFSET   = 0.16            # tool0 above the grasp point (m)
+TCP_OFFSET   = 0.0             # grasp_tcp IS the fingertip frame; 0 = TCP at the
+                              # detected point. Make negative to dip deeper into it.
 APPROACH     = 0.12            # pre-grasp height above grasp (m)
 LIFT         = 0.20            # how high to lift after grasping (m)
 GRASP_QUAT   = [1.0, 0.0, 0.0, 0.0]   # gripper pointing down (x,y,z,w)

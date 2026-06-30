@@ -187,3 +187,8 @@ These walk through *how* each part was built, not just how to run it:
 ## License
 
 Apache-2.0 — see [`LICENSE`](LICENSE).
+
+
+
+python3 src/object_detection_yolo/object_detection_yolo/move_to_pose.py \
+    --ros-args -p x:=0.19084 -p y:=0.8713 -p z:=0.07066 -p free_orientation:=false -p close_gripper:=true

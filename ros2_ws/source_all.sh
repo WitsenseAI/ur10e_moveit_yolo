@@ -6,16 +6,16 @@
 # (that would close the terminal on the next failing command) — hence no `set -e`.
 
 WS_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-MOVEIT_WS="${MOVEIT_WS:-$HOME/ws_moveit}"
+# MOVEIT_WS="${MOVEIT_WS:-$HOME/ws_moveit}"
 
 # Overlay order matters: base first, then MoveIt, then THIS workspace LAST so our
 # rebuilt overlays (e.g. topic_based_ros2_control) shadow the apt/base versions.
 source /opt/ros/jazzy/setup.bash
-if [ -f "$MOVEIT_WS/install/setup.bash" ]; then
-  source "$MOVEIT_WS/install/setup.bash"
-else
-  echo "source_all.sh: WARNING: no MoveIt install at $MOVEIT_WS (set MOVEIT_WS=...)" >&2
-fi
+# if [ -f "$MOVEIT_WS/install/setup.bash" ]; then
+#   source "$MOVEIT_WS/install/setup.bash"
+# else
+#   echo "source_all.sh: WARNING: no MoveIt install at $MOVEIT_WS (set MOVEIT_WS=...)" >&2
+# fi
 source "$WS_DIR/install/setup.bash"
 
 # Optional extra overlay (machine-specific). Only sourced if present, so this

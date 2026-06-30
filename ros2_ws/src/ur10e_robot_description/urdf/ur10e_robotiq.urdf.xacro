@@ -82,6 +82,21 @@
     <origin xyz="0 0 0" rpy="0 0 0"/>
   </xacro:robotiq_gripper>
 
+  <!-- ===================== Grasp TCP frame ===================== -->
+  <!-- A massless frame on the gripper approach axis (tool0 +Z), at the depth of the
+       finger pads. It is the MoveIt group tip (see ur10e.srdf), so a Cartesian goal
+       is reached by the GRASP POINT, not the wrist flange — you can command an
+       object's position directly, with no manual tool offset in any node.
+       Tune 0.16 to your true grasp depth once the robot is loaded:
+         ros2 run tf2_ros tf2_echo tool0 left_inner_finger_pad    # read z
+         ros2 run tf2_ros tf2_echo tool0 right_inner_finger_pad   # read z; average -->
+  <link name="${tf_prefix}grasp_tcp"/>
+  <joint name="${tf_prefix}tool0-grasp_tcp" type="fixed">
+    <parent link="${tf_prefix}tool0"/>
+    <child link="${tf_prefix}grasp_tcp"/>
+    <origin xyz="0 0 0.16" rpy="0 0 0"/>
+  </joint>
+
   <!-- ===================== Single Isaac ros2_control system (arm + gripper) ===================== -->
   <!-- One system for ALL driven joints (6 arm + finger_joint). This makes the
        topic_based command message well-formed: 7 names <-> 7 positions, which Isaac
