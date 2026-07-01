@@ -19,7 +19,7 @@ from moveit_msgs.msg import (MotionPlanRequest, Constraints, PositionConstraint,
                              OrientationConstraint, BoundingVolume)
 
 GROUP      = "ur_manipulator"
-EE_LINK    = "grasp_tcp"   # group tip = grasp point; goal XYZ is the fingertip target
+EE_LINK    = "grasp_tcp"  
 PLAN_FRAME = "world"
 ARM_JOINTS = ["shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint",
               "wrist_1_joint", "wrist_2_joint", "wrist_3_joint"]
@@ -44,8 +44,8 @@ class MoveToPose(Node):
         self.declare_parameter("ori_tol", 0.2)
         self.declare_parameter("close_gripper", False)
         self.declare_parameter("home_first", True)
-        self.declare_parameter("approach", 0.10)   # hover this far above target, then
-                                                   # descend straight down (m); 0 = go direct
+        self.declare_parameter("approach", 0.10)   
+                                                   
 
         self.move_client = ActionClient(self, MoveGroup, "/move_action",
                                         callback_group=self.cb)

@@ -27,15 +27,14 @@ class Yolo3DDetector(Node):
         self.declare_parameter("optical_frame", "front_stereo_camera_left_optical")
 
         # --- model / detection ---
-        self.declare_parameter("model", "yolo26_cup.pt")
-        self.declare_parameter("classes", [-1])
-        # self.declare_parameter("model", "yolov8n.pt")
-        self.declare_parameter("conf", 0.15)
-        # self.declare_parameter("classes", [39, 41, 32])  # bottle, cup, sports ball
+        self.declare_parameter("model", "yolo26l.pt")
+        # COCO ids: 41 = cup, 32 = sports ball. [-1] = no filter (all classes).
+        self.declare_parameter("classes", [41])
+        self.declare_parameter("conf", 0.4)
 
         # --- DEBUG TOGGLES (set false once everything works) ---
         # detect_all: ignore class filter + use a low conf, and log every class found.
-        self.declare_parameter("detect_all", True)
+        self.declare_parameter("detect_all", False)
         self.declare_parameter("debug_conf", 0.10)
         # dump_frames: save the first N frames YOLO actually sees to /tmp for inspection.
         self.declare_parameter("dump_frames", 5)
@@ -61,6 +60,8 @@ class Yolo3DDetector(Node):
 
         self.det_pub = self.create_publisher(Detection3DArray, "/detected_objects_3d", 10)
         self.mk_pub = self.create_publisher(MarkerArray, "/detected_objects_markers", 10)
+        # annotated RGB so you can SEE what YOLO boxes (view with rqt_image_view)
+        self.dbg_pub = self.create_publisher(Image, "/yolo_3d_detector/debug_image", 10)
 
         # Decoupled subscriptions: RGB and depth publish at different rates / stamps
         # in Isaac, so a strict time-sync rarely matches. The scene is static, so we
@@ -87,14 +88,22 @@ class Yolo3DDetector(Node):
     def depth_cb(self, msg: Image):
         self.latest_depth = self.bridge.imgmsg_to_cv2(msg, "32FC1")
 
-    def sample_depth(self, depth, u, v, win=4):
+    def sample_depth(self, depth, x1, y1, x2, y2):
+        # The object is the NEAREST surface inside its box; the floor/background
+        # behind it is farther. A median at the box center catches the table seen
+        # through/past the cup's rim (symptom: world z pinned to the table plane).
+        # Taking a NEAR percentile over the box interior locks onto the object.
         h, w = depth.shape
-        u0, u1 = max(0, u - win), min(w, u + win + 1)
-        v0, v1 = max(0, v - win), min(h, v + win + 1)
+        bw, bh = x2 - x1, y2 - y1
+        # shrink to the central 60% so background at the box edges doesn't bleed in
+        u0 = max(0, int(x1 + 0.2 * bw)); u1 = min(w, int(x2 - 0.2 * bw))
+        v0 = max(0, int(y1 + 0.2 * bh)); v1 = min(h, int(y2 - 0.2 * bh))
         patch = depth[v0:v1, u0:u1].astype(np.float32).ravel()
         patch = patch[np.isfinite(patch)]
         patch = patch[patch > 0.05]          # drop zeros/holes
-        return float(np.median(patch)) if patch.size else None
+        if patch.size == 0:
+            return None
+        return float(np.percentile(patch, 20))   # near surface = the object, not the floor
 
     def rgb_cb(self, rgb_msg: Image):
         if self.K is None or self.latest_depth is None:
@@ -142,7 +151,12 @@ class Yolo3DDetector(Node):
             cls_id = int(box.cls[0]); conf = float(box.conf[0])
             name = self.model.names.get(cls_id, str(cls_id))
 
-            z = self.sample_depth(depth, int(u * sx), int(v * sy))
+            # draw the 2D box + label so we can see exactly what YOLO fired on
+            cv2.rectangle(bgr, (int(x1), int(y1)), (int(x2), int(y2)), (0, 255, 0), 2)
+            cv2.putText(bgr, f"{name} {conf:.2f}", (int(x1), max(0, int(y1) - 8)),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.9, (0, 255, 0), 2)
+
+            z = self.sample_depth(depth, x1 * sx, y1 * sy, x2 * sx, y2 * sy)
             if z is None:
                 self.get_logger().warn(f"{name}: no valid depth at pixel")
                 continue
@@ -193,6 +207,8 @@ class Yolo3DDetector(Node):
 
         self.det_pub.publish(det_array)
         self.mk_pub.publish(markers)
+        # publish the annotated frame (boxes drawn above) for visual debugging
+        self.dbg_pub.publish(self.bridge.cv2_to_imgmsg(bgr, "bgr8"))
 
 
 def main():

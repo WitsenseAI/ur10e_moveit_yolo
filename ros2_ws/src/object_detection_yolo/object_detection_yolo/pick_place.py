@@ -24,10 +24,10 @@ from moveit_msgs.msg import (MotionPlanRequest, Constraints, PositionConstraint,
 
 # ---------------- TUNE THESE (see object_pick_place.md Step 1) ----------------
 GROUP        = "ur_manipulator"
-EE_LINK      = "grasp_tcp"     # group tip is now the grasp point (see ur10e.srdf)
+EE_LINK      = "grasp_tcp"     
 PLAN_FRAME   = "world"
-TCP_OFFSET   = 0.0             # grasp_tcp IS the fingertip frame; 0 = TCP at the
-                              # detected point. Make negative to dip deeper into it.
+TCP_OFFSET   = 0.0             
+                              
 APPROACH     = 0.12            # pre-grasp height above grasp (m)
 LIFT         = 0.20            # how high to lift after grasping (m)
 GRASP_QUAT   = [1.0, 0.0, 0.0, 0.0]   # gripper pointing down (x,y,z,w)
@@ -159,9 +159,7 @@ class PickPlace(Node):
 
     # ---------- home the arm straight up (direct controller, no collision check) ----------
     def home_arm(self, t=4.0):
-        # Sent straight to arm_controller so it works even if the arm currently rests
-        # on/in the table (MoveIt would refuse: START_STATE_IN_COLLISION). All-zero
-        # joints = arm pointing straight up, clear of the table -> safe planning start.
+      
         self.get_logger().info("homing arm (straight up) ...")
         self.arm_traj.wait_for_server()
         goal = FollowJointTrajectory.Goal()

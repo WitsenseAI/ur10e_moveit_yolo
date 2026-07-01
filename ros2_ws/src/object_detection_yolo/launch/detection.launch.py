@@ -11,7 +11,10 @@ def generate_launch_description():
         parameters=[{
         "use_sim_time": True,
         "optical_frame": "front_stereo_camera_left",   # Isaac is already optical
-        "detect_all": False,
+        "model": "yolo26l.pt",
+        "classes": [41],   # COCO: 41=cup, 32=sports ball
+        "conf": 0.4,
+        "detect_all": False,   # False = apply the class filter above
         "dump_frames": 0,
         }],
         additional_env={
